@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>诗的宇宙星辰 - 国学社2025回顾与2026展望</title>
+    
+    <!-- React 核心 -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- 样式与动画 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    
+    <!-- 字体 -->
+    <link href="https://fonts.googleapis.com/css2?family=LXGW+Wen+Kai+Screen&family=Noto+Serif+SC:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://npm.elemecdn.com/lxgw-wenkai-screen-webfont/style.css">
+
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'space-dark': '#0B1021',
+                        'space-blue': '#1B2735',
+                        'star-gold': '#FCD34D',
+                        'star-white': '#E2E8F0',
+                        'nebula-purple': '#6366F1',
+                        'chat-user': '#3e3e3e',
+                        'chat-ai': '#2d2d2d',
+                        'diff-green': '#4ade80',
+                    },
+                    fontFamily: {
+                        sans: ['LXGW WenKai Screen', 'Noto Serif SC', 'serif'],
+                        serif: ['Noto Serif SC', 'serif'],
+                    },
+                    animation: {
+                        'twinkle': 'twinkle 4s ease-in-out infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        twinkle: {
+                            '0%, 100%': { opacity: 0.5, transform: 'scale(1)' },
+                            '50%': { opacity: 1, transform: 'scale(1.2)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0B1021;
+            color: #E2E8F0;
+            overflow: hidden;
+            font-family: 'LXGW WenKai Screen', sans-serif;
+        }
+
+        /* 星空背景 */
+        .star-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
+            z-index: -2;
+            pointer-events: none;
+        }
+        .stars {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                radial-gradient(1px 1px at 20px 30px, #eee, rgba(0,0,0,0)),
+                radial-gradient(1px 1px at 40px 70px, #fff, rgba(0,0,0,0)),
+                radial-gradient(1px 1px at 50px 160px, #ddd, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 90px 40px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 130px 80px, #fff, rgba(0,0,0,0));
+            background-size: 200px 200px;
+            animation: twinkle 5s infinite;
+            opacity: 0.3;
+            z-index: -1;
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* AI Demo Styles */
+        .cursor::after {
+            content: "▋";
+            color: #60A5FA;
+            margin-left: 2px;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        
+        /* 优化后的荧光高亮效果 */
+        .diff-char { transition: all 0.2s; display: inline-block; padding: 0 1px; border-radius: 2px; }
+        .diff-char.mask { color: #444; }
+        .diff-char.changed {
+            animation: flashChange 0.8s ease-out forwards;
+            color: #fff;
+        }
+        @keyframes flashChange {
+            0% { 
+                background-color: #4ade80; 
+                color: #000; 
+                transform: scale(1.3); 
+                box-shadow: 0 0 15px #4ade80, 0 0 30px #4ade80;
+            }
+            100% { 
+                background-color: transparent; 
+                color: inherit; 
+                transform: scale(1);
+                box-shadow: none;
+                text-shadow: 0 0 5px rgba(74, 222, 128, 0.5);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo, useContext, useCallback } = React;
+        const { motion, AnimatePresence, useScroll, useTransform } = window.Motion;
+
+        // ==========================================
+        // 1. 公共组件
+        // ==========================================
+
+        const StarBackground = () => (
+            <>
+                <div className="star-bg" />
+                <div className="stars" />
+                <div className="stars" style={{ backgroundSize: '300px 300px', animationDelay: '1s', opacity: 0.2 }} />
+            </>
+        );
+
+        const ChevronRight = ({ className, onClick }) => (
+            <svg onClick={onClick} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <path d="m9 18 6-6-6-6"/>
+            </svg>
+        );
+
+        const ExternalLinkIcon = ({ className }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+        );
+
+        // ==========================================
+        // 2. 诗歌墙组件 (背景)
+        // ==========================================
+        
+        const poemRawData = `
+花  桐 #bbeedd
+减字木兰花五首
+叹声归也。深巷无人过半夜。街面初凉。自语传出木扇窗。◎方才宴所。定有对答不是处。怎又提他。消息忒灵通了些。
+归来日暮。光暗霓虹灯下路。安步当车。只是识途不是家。◎依然梦里。隔了一条黄浦水。且忘邯郸。楼外斜斜月色寒。
+
+林雨夜 #ddddee
+减字木兰花 岁末寄花桐次韵五首
+歌筵散也。忆是去年冬日夜。云月双凉。涂抹东中院小窗。◎心无定所。流到相逢缘到处。未及言他。一捧幽愁已减些。
+深林向暮。执手「留神阶下路」。影掠长车。相倚心安处是家。◎新笺字里。一道江流望海水。已过邯郸。犹与东川共此寒。
+
+修  逸 #ffaa99
+减字木兰花 绮情五首
+笙歌近也。遍上兰灯欢不夜。河汉新凉。共看烟花隔小窗。◎心思几所，偷觑眉波流转处。相对无他。与我轻轻坐近些。
+江城雨暮。共伞比肩园外路。来往香车。相送芳尘到谢家。◎咫书千里。唯诉幽衷同碧水。休梦邯郸。此夜春风尚且寒。
+
+刘麒麟 #99ccff
+减字木兰花 海上五首步芋椰韵
+月初升也，重叠喧哗澄澈夜。暖酒驱凉，人影轻盈到蜃窗。◎虚凝我所，圣诞金球奇彩处。灯熄无他，小径先寻枫叶些。
+穿行昼暮，光景百年香满路。并驾鸾车，摇曳姮娥仙子家。◎秋星十里，两岸明楼浮一水。不梦邯郸，潮击舷墙玉兔寒。
+`;
+
+        const parsePoemData = (text) => {
+            const blocks = text.trim().split(/\n\s*\n/);
+            return blocks.map(block => {
+                const lines = block.trim().split('\n').filter(l => l.trim() !== '');
+                if (lines.length < 3) return null;
+                const headerParts = lines[0].split(/\s+/);
+                let color = '#ccc';
+                let authorName = lines[0];
+                const colorMatch = lines[0].match(/#[0-9a-fA-F]{6}/);
+                if (colorMatch) {
+                    color = colorMatch[0];
+                    authorName = lines[0].replace(color, '').trim();
+                }
+                const title = lines[1];
+                let poems = [];
+                for (let i = 2; i < lines.length; i++) {
+                    poems.push({ content: lines[i] });
+                }
+                return { name: authorName, color, title, poems };
+            }).filter(Boolean);
+        };
+
+        const PoemWall = () => {
+            const authors = useMemo(() => parsePoemData(poemRawData), []);
+            const containerRef = useRef(null);
+            
+            useEffect(() => {
+                const el = containerRef.current;
+                if(!el) return;
+                let scrollAmount = 0;
+                const speed = 0.5;
+                const step = () => {
+                    scrollAmount += speed;
+                    if(el) {
+                        el.scrollLeft = scrollAmount;
+                    }
+                    requestAnimationFrame(step);
+                };
+                const anim = requestAnimationFrame(step);
+                return () => cancelAnimationFrame(anim);
+            }, []);
+
+            return (
+                <div className="absolute inset-0 opacity-40 z-0 overflow-hidden pointer-events-none">
+                    <div ref={containerRef} className="flex gap-8 items-center h-full px-10 overflow-x-hidden w-[200%]">
+                        {[...authors, ...authors, ...authors].map((author, idx) => (
+                            <div key={idx} className="flex flex-col gap-2 min-w-[200px] transform scale-90 opacity-70">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-black font-bold text-xs" style={{backgroundColor: author.color}}>
+                                        {author.name[0]}
+                                    </div>
+                                    <span className="text-white/60 text-xs">{author.name}</span>
+                                </div>
+                                {author.poems.map((p, pIdx) => (
+                                    <div key={pIdx} className="bg-white/10 backdrop-blur-sm p-3 rounded border border-white/10 text-[10px] text-gray-300 leading-relaxed font-light">
+                                        {p.content.split(/[。？！]/).slice(0, 2).map((l, i) => l && <div key={i}>{l}</div>)}
+                                    </div>
+                                ))}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        // ==========================================
+        // 3. AI Demo 组件
+        // ==========================================
+        const AIDemo = ({ isActive }) => {
+            const [autoText, setAutoText] = useState("");
+            const [diffText, setDiffText] = useState("");
+            const [diffStep, setDiffStep] = useState(0);
+            
+            // 数据源：原汁原味
+            const leftResponseText = `初晴爽冷一宵悲，半入松枝半在池。萬木渐青春色起，一行斜下夕郎眉。雞人報曙疑添夜，書客吟寒似有思。却笑當時阮道士，塵埃滿路惹愁丝。`;
+            
+            const diffStepsRaw = [
+                "□□□□□□悲。□□□□□□池。□□□□□□□，□□□□□□眉。□□□□□□□，□□□□□□思。□□□□□□□，□□□□□□丝。",
+"□□□□□□悲。□□□□□□池。□□□□□□□，□□□□□□眉。□□□□□□□，□□□□□心思。□□□□□□□，□□□□□□丝。",
+"□□□□□□悲。□□□□□□池。□□□□□□□，□□□□□□眉。□□□□□□□，□□□□□心思。□□□□□□□，□□□□□□丝。",
+"□□□□□□悲。□□□□□□池。□□微□□□□，□□□□□□眉。□□□□□□□，□□□□□心思。□□□□□□□，□□□□□□丝。",
+"□□□□□□悲。□□清□□□池。□□微雨□□□，□□□□□□眉。□□□□□□□，□□□□□□思。□□□□□□□，□□□□□□丝。",
+"□□□□□□悲。□中□晨□□池。□□微雨□□□，□□□□□□眉。□□□□□□□，□□□□□□思。□□□□□□□，□□□□□□丝。",
+"□□□□□□悲。□中清晨□□池。□□微雨□□□，□□□□□□眉。□□□□□□□，□□□□□相思。□□□□□□□，□□□□□□丝。",
+"□□□□□□悲。雨□清晨□□池。□风微雨□□□，□□□□□□眉。□□□□□□□，□□□□□相思。□□□□□□□，□□□叶□□丝。",
+"□□□□有□悲。雨中清晨□□池。□风微雨□□□，□□□□□□眉。□□□□□□□，□□□□□相思。□□□□□□□，□□□叶□□丝。",
+"□□□木□多悲。雨中清晨□□池。□风微雨□□□，□□□□□□眉。□□□□□□□，□□□□□相思。□□□□□□□，□□□叶□青丝。",
+"□□抱木□多悲。雨中清晨在□池。□风微雨□□□，□□□□□□眉。□□□□□□□，□□□□□相思。□□□□□□□，□□□叶舞青丝。",
+"□□抱木有多悲。雨中□晨□□池。□风微雨□春□，□□□□□□眉。□□□□□□□，□□□□□相思。一□□□□□□，□□□叶舞青丝。",
+"□□抱木有多悲。雨中清晨□瑶池。□风微雨□春□，□□□□□蛾眉。□□□窗□□□，□□□□□相思。一曲□□□□□，□□绿叶舞青丝。",
+"□知抱木有多悲。雨中清晨忆瑶池。□风微雨□春□，□□□□□蛾眉。□□□窗□□□，□年□□□相思。一曲□□□□□，□□绿叶舞青丝。",
+"不知抱木有多悲。雨中清晨忆瑶池。□风微雨□春□，□□□水□蛾眉。□月□窗□□□，□年□□□相思。一曲□□□□□，□□绿叶舞青丝。",
+"不知抱木有多悲。雨中清晨忆瑶池。□风微雨□春□，□□流水□蛾眉。□月□窗□□梦，□年□□□相思。一曲□歌□□□，□□□叶舞青丝。",
+"不知抱木有多悲。雨中清晨忆瑶池。轻风微雨□春□，□江流水□蛾眉。明月□窗□□梦，千年□夜□相思。一曲□歌□□□，□枝□叶舞青丝。",
+"不知抱木有多悲。雨中清晨忆瑶池。轻风微雨□春□，长江流水□蛾眉。明月□窗□□梦，千年昨夜□相思。一曲长歌□□□，□枝绿叶舞青丝。",
+"不知抱木有多悲。雨中清晨忆瑶池。轻风微雨□春□，长江流水□蛾眉。明月□窗无旧梦，千年昨夜□相思。一曲长歌□碧□，红枝绿叶舞青丝。",
+"不知抱木有多悲。雨中清晨忆瑶池。轻风微雨□春色，长江流水□蛾眉。明月西窗无旧梦，千年昨夜是相思。一曲长歌□碧□，红枝绿叶舞青丝。",
+"不知抱木有多悲。雨中清晨忆瑶池。轻风微雨伴春色，长江流水入蛾眉。明月西窗无旧梦，千年昨夜是相思。一曲长歌染碧柳，红枝绿叶舞青丝。",
+"不知抱木有多悲。雨中清晨忆瑶池。轻风微雨伴春色，长江流水入蛾眉。明月西窗无旧梦，千年昨夜是相思。一曲长歌染碧柳，红枝绿叶舞青丝。",
+"不知抱木有多悲。只见清晨绕澄池。小中残波伴春色，长江流水入蛾眉。百处新河无旧梦，千古幽雨共闲思。一曲云声吟碧柳，红枝绿叶舞青丝。",
+"不知抱木有多悲。只见清风映临池。百岸残波伴春色，长江流水入蛾眉。几月如山无旧梦，千古幽情断相思。一曲云声吟碧柳，红枝绿叶舞青丝。",
+"不知抱木有多悲。只见清晨到玉池。百岸残波伴春色，长江流水入蛾眉。几年浮来凝美梦，千古幽笺醉独思。一曲云声吟碧柳，红枝绿叶舞青丝。",
+"不知抱木有多悲。只见清晨到玉池。百岸残波伴春色，长江流水入蛾眉。几度如泉凝美梦，千古幽笺醉独思。一曲云声吟碧柳，红枝绿叶舞青丝。",
+"不知抱木有多悲。只见清晨到玉池。百岸残波伴春色，长江流水入蛾眉。半秋琼眸凝美梦，千古幽笺醉独思。一曲云声吟碧柳，红枝绿叶舞青丝。",
+"不知抱木有多悲。只见清晨到玉池。百岸残波伴春色，长江流水入蛾眉。半年诗窗凝美梦，千古幽笺醉独思。一曲云声吟碧柳，红枝绿叶舞青丝。",
+"不知抱木有多悲。只见清晨到玉池。百岸残波伴春色，长江流水入蛾眉。半年诗赋寻同梦，千古幽笺醉独思。一曲云声吟碧柳，红枝绿叶舞青丝。",
+"不知抱木有多悲。只见清晨到玉池。百岸残波伴春色，长江流水入蛾眉。半年诗赋寻同梦，千古幽笺醉独思。一曲云声吟碧柳，红枝绿叶舞青丝。"
+            ];
+
+            useEffect(() => {
+                if (!isActive) return;
+
+                // Reset
+                setAutoText("");
+                setDiffText(diffStepsRaw[0]);
+                setDiffStep(0);
+
+                let isMounted = true;
+
+                // Auto Logic: 逐字生成
+                const runAuto = async () => {
+                    await new Promise(r => setTimeout(r, 800)); // Initial Delay
+                    for (let i = 0; i < leftResponseText.length; i++) {
+                        if (!isMounted) break;
+                        let char = leftResponseText[i];
+                        // 模拟人类/模型停顿
+                        let speed = 100; 
+                        if (char === '，') speed = 200;
+                        if (char === '。') speed = 400;
+                        if (char === '\n') speed = 150;
+                        await new Promise(r => setTimeout(r, speed));
+                        setAutoText(prev => prev + char);
+                    }
+                };
+
+                // Diff Logic: 逐步去噪
+                const runDiff = async () => {
+                    await new Promise(r => setTimeout(r, 500)); // Start later
+                    
+                    for (let i = 0; i < diffStepsRaw.length; i++) {
+                        if(!isMounted) break;
+                        setDiffText(diffStepsRaw[i]);
+                        setDiffStep(i);
+                        
+                        // 后期变慢
+                        let delay = 300;
+                        if (i > diffStepsRaw.length - 5) delay = 600;
+                        await new Promise(r => setTimeout(r, delay));
+                    }
+                };
+
+                runAuto();
+                runDiff();
+
+                return () => { isMounted = false; };
+            }, [isActive]);
+
+            // Helper to render diff text with colors
+            const renderDiff = () => {
+                return diffText.split('').map((char, idx) => {
+                    const isMask = char === '□';
+                    const isChanged = diffStep > 0 && char !== '□'; 
+                    // 这里添加 key=idx + char 确保每次字符变化都会触发React重新渲染该span，从而触发动画
+                    return (
+                        <span key={idx + '-' + char} className={`diff-char ${isMask ? 'mask' : ''} ${isChanged ? 'changed' : ''}`}>
+                            {char}
+                        </span>
+                    );
+                });
+            };
+
+            return (
+                <div className="flex flex-col md:flex-row gap-4 w-full h-full p-4 text-sm md:text-base">
+                    {/* Left: Auto */}
+                    <div className="flex-1 bg-gray-900/80 border border-gray-700 rounded-lg p-0 flex flex-col overflow-hidden shadow-xl">
+                        <div className="bg-gray-800/50 px-4 py-2 border-b border-gray-700 flex justify-between items-center">
+                            <span className="text-gray-400 font-mono">对话 A</span>
+                            <span className="text-blue-400 text-xs border border-blue-400/30 px-2 py-0.5 rounded bg-blue-400/10">NanyangPoet-Auto-1.0-Preview</span>
+                        </div>
+                        <div className="flex-1 p-4 flex flex-col gap-4 overflow-y-auto font-sans">
+                            {/* User Bubble */}
+                            <div className="self-end bg-chat-user text-gray-200 px-4 py-2 rounded-t-xl rounded-bl-xl max-w-[85%] shadow-md">
+                                请写一首七律。<br/>主题：雨后清晨。
+                            </div>
+                            {/* AI Bubble */}
+                            <div className="self-start w-full max-w-[95%] animate-fade-in">
+                                <div className="font-serif text-lg leading-loose tracking-widest whitespace-pre-wrap text-gray-100 pl-2 break-all">
+                                    {autoText}<span className="cursor"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right: Diff */}
+                    <div className="flex-1 bg-gray-900/80 border border-gray-700 rounded-lg p-0 flex flex-col overflow-hidden shadow-xl">
+                        <div className="bg-gray-800/50 px-4 py-2 border-b border-gray-700 flex justify-between items-center">
+                            <span className="text-gray-400 font-mono">对话 B</span>
+                            <span className="text-green-400 text-xs border border-green-400/30 px-2 py-0.5 rounded bg-green-400/10">NanyangPoet-Diff-1.0-Preview</span>
+                        </div>
+                        <div className="flex-1 p-4 flex flex-col gap-4 overflow-y-auto font-sans">
+                            {/* User Bubble */}
+                            <div className="self-end bg-chat-user text-gray-200 px-4 py-2 rounded-t-xl rounded-bl-xl max-w-[85%] shadow-md">
+                                请写一首七律。<br/>主题：雨后清晨。<br/>韵脚：悲、池、眉、思、丝。
+                            </div>
+                            {/* AI Bubble */}
+                            <div className="self-start w-full max-w-[95%] flex flex-col gap-2">
+                                <div className="font-serif text-lg leading-loose tracking-widest whitespace-pre-wrap text-gray-100 pl-2 break-all">
+                                    {renderDiff()}
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // ==========================================
+        // 4. 内容页组件
+        // ==========================================
+
+        const Slide = ({ children, className }) => (
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.8 }}
+                className={`w-full h-full flex flex-col items-center justify-center relative ${className}`}
+            >
+                {children}
+            </motion.div>
+        );
+
+        // P0 Title
+        const TitleSlide = () => (
+            <div className="text-center z-10">
+                <motion.div 
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 1.2 }}
+                >
+                    <h1 className="text-6xl md:text-8xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-star-gold via-white to-star-gold drop-shadow-lg font-serif">
+                        诗的宇宙星辰
+                    </h1>
+                </motion.div>
+                <motion.p 
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.5, duration: 1 }}
+                    className="text-xl md:text-2xl text-blue-200 tracking-widest font-light"
+                >
+                    国学社2025精彩回顾与2026工作展望
+                </motion.p>
+                <div className="mt-12 h-px w-32 bg-gradient-to-r from-transparent via-blue-400 to-transparent mx-auto opacity-50"></div>
+            </div>
+        );
+
+        // P1 Highlights
+        const StatsSlide = () => {
+            const stats = [
+                { label: "网站浏览量", value: "630,794", unit: "人次", color: "text-blue-400" },
+                { label: "公众号关注", value: "4,866", unit: "人", color: "text-purple-400" },
+                { label: "公众号触达", value: "214,792", unit: "人次", color: "text-green-400" },
+                { label: "原创诗词", value: "4,780", unit: "首", color: "text-star-gold" },
+                { label: "合作高校", value: "10+", unit: "所", color: "text-pink-400" },
+                { label: "主流媒体报道", value: "3+", unit: "次", color: "text-cyan-400" },
+            ];
+            
+            return (
+                <div className="w-full max-w-6xl px-4 z-10">
+                    <h2 className="text-3xl font-bold mb-12 text-center text-white/90 font-serif">年度高光时刻</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                        {stats.map((item, idx) => (
+                            <motion.div 
+                                key={idx}
+                                initial={{ scale: 0.9, opacity: 0 }}
+                                whileInView={{ scale: 1, opacity: 1 }}
+                                transition={{ delay: idx * 0.1 }}
+                                className="bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-xl flex flex-col items-center justify-center hover:bg-white/10 transition-colors group"
+                            >
+                                <div className={`text-4xl md:text-5xl font-bold mb-2 ${item.color} group-hover:scale-110 transition-transform font-serif`}>
+                                    {item.value}
+                                </div>
+                                <div className="text-sm text-gray-400 uppercase tracking-wider">{item.label}</div>
+                                <div className="text-xs text-gray-600 mt-1">{item.unit}</div>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        // P2 Poem Achievement
+        const PoemAchievementSlide = () => {
+            const [activeGroup, setActiveGroup] = useState(0);
+            
+            const cardsData = [
+                [
+                    { title: "贺新郎·十年后 / 花桐", content: "暮色侵衣袂。惯经过、凯旋门外，桂香将碎。挥手一声车厢远，七度星霜底事。可堪为、卿卿深语。犹记主图听夜雨，望征途渺渺浑无计。名海溺，今醒未。◎雨迷江左沉酣醉。换千株、水杉还被，碧云梳洗。倦客喧城和行旅，一笑相逢而已。幸犹在、旧时清气。携友投书询汝好，料此心光照如初霁。风乍起，叶轻坠。" },
+                    { title: "贺新郎·十年前 / 花桐", content: "灯下重回处。记当时、最怜人影，笑声成路。廊外同窗并肩去，月色低垂庭户。也曾试、将心深护。今抱香花怀袖内，把旧颜装作从容语。光不定，眉微聚。◎流年倏忽争些误。幸如今、得几良友，夜谈如故。新月眉间轻梳起，笔底新诗盈缕。并踏雨、共游相遇。许我如今频揽镜，觉那人、未远仍相顾。灯半照，窗犹曙。" }
+                ],
+                [
+                    { title: "贺新郎·次韵花桐十年前 / 毛哥", content: "点滴皆随处。小辰光，从洋灰场，到机耕路。不耍闹唯知闲坐，喜看南风入户。未上树，将身惜护。只道三冬将床捂，浑不知裁剪冬郎语。灵与晕，一时聚。◎可能昨是今非误。可能藏，杜鹃花下，恍然如故。忆海一蒿凭洄溯，芼得沉思缕缕：类别化，普通相遇。似遇到曾经肥仔，见我难相认当弗顾。小朋友，日将曙。" },
+                    { title: "贺新郎·次韵花桐十年后 / 毛哥", content: "为尔题襟袂。尔当能，和歌白雪，唾壶敲碎。算把十年都折跃，难抵浮沉人事。前席作，中宵谏语：莫走入温和良夜，亦莫为混世同尘计。问尔诺，墨干未。◎心思纸背消沉醉。莫相违，转蓬踪迹，水云梳洗。与尔时空应密接，皆有才情未已。或隔离，英年负气？往事万千多珍重，重幽怀月过光风霁。说与我，莫轻坠。" }
+                ],
+                [
+                    { title: "十年二首 其一 / 柳介（复旦大学）", content: "离背中园恰十年，思量往事总千千。紫峰山下小私塾，后厝街旁滚白烟。何处能寻花不老，而今唯见月同圆。至如他日逢童子，笑睃无言已自然。" },
+                    { title: "十年二首 其二 / 柳介（复旦大学）", content: "倦卧三更夜已遐，恍然及卅促年华。沈研算数编程序，闲作诗章映晚霞。蕉鹿难分熟是梦，烂柯欲返驶何槎。重来不必疑前路，前路无涯我有涯。" }
+                ]
+            ];
+
+            const currentCards = cardsData[activeGroup];
+
+            return (
+                <div className="w-full h-full relative flex flex-col items-center justify-center p-4">
+                    {/* Background Substrate */}
+                    <PoemWall />
+                    
+                    {/* Foreground Content */}
+                    <div className="z-10 w-full max-w-4xl flex flex-col gap-8 pointer-events-none">
+                        
+                        {/* Stats Bar */}
+                        <div className="w-full bg-space-blue/80 backdrop-blur-md border border-white/20 rounded-full py-4 px-8 flex justify-around items-center shadow-lg pointer-events-auto">
+                            <div className="text-center">
+                                <div className="text-2xl font-bold text-star-gold font-serif">933</div>
+                                <div className="text-xs text-gray-400">年度作品数</div>
+                            </div>
+                            <div className="h-8 w-px bg-white/20"></div>
+                            <div className="text-center">
+                                <div className="text-2xl font-bold text-purple-400 font-serif">41</div>
+                                <div className="text-xs text-gray-400">入驻创作者</div>
+                            </div>
+                             <div className="h-8 w-px bg-white/20"></div>
+                            <div className="text-center">
+                                <div className="text-2xl font-bold text-blue-400 font-serif">56,012</div>
+                                <div className="text-xs text-gray-400">总字数</div>
+                            </div>
+                             <div className="h-8 w-px bg-white/20"></div>
+                            <div className="text-center">
+                                <div className="text-2xl font-bold text-green-400 font-serif">28</div>
+                                <div className="text-xs text-gray-400">唱和人数</div>
+                            </div>
+                        </div>
+
+                        {/* Interactive Card Box */}
+                        <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6 pointer-events-auto">
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-xl font-bold text-white font-serif">四校+致远文艺联动社课 <span style={{color: '#999', fontSize: '0.8em'}}>92</span></h3>
+                                <button 
+                                    onClick={() => setActiveGroup((prev) => (prev + 1) % 3)}
+                                    className="px-4 py-1 rounded-full border border-white/30 text-xs text-white hover:bg-white/20 transition-colors flex items-center gap-2"
+                                >
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                    换一组
+                                </button>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <AnimatePresence mode="wait">
+                                    {currentCards.map((card, idx) => (
+                                        <motion.div
+                                            key={`${activeGroup}-${idx}`}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -10 }}
+                                            transition={{ delay: idx * 0.1 }}
+                                            // 优化：高度调整，增加 min-h 和滚动，适应长诗
+                                            className="bg-white/5 p-6 rounded-lg border border-white/5 hover:border-white/20 transition-colors min-h-[320px] flex flex-col"
+                                        >
+                                            <div className="text-star-gold text-lg font-bold mb-4 font-serif border-b border-white/10 pb-2">{card.title}</div>
+                                            <div className="text-gray-300 font-serif whitespace-pre-wrap leading-loose flex-1 overflow-y-auto no-scrollbar text-base">
+                                                {card.content}
+                                                {/* 模拟长内容填充 */}
+                                                <div className="mt-4 text-gray-500 text-sm">
+                                                    四校·致远文艺联动社课·十年
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    ))}
+                                </AnimatePresence>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // P3 Iframes
+        const IframeSlide = () => (
+            <div className="w-full h-full flex flex-col pt-20 px-4 md:px-12 pb-8 gap-4 z-10">
+                <h2 className="text-2xl font-bold text-center mb-2 font-serif">作者关系图 & 诗迹星云</h2>
+                <div className="flex-1 flex flex-col md:flex-row gap-4 w-full overflow-hidden">
+                    <div className="flex-1 bg-white/5 rounded-xl border border-white/10 overflow-hidden relative group flex flex-col">
+                        {/* Debug: 增加外链跳转按钮，防止iframe无法加载 */}
+                        <a href="https://sjtuguoxue.space/stats" target="_blank" rel="noopener noreferrer" className="absolute top-2 right-2 bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1 rounded-full z-20 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
+                            <ExternalLinkIcon className="w-3 h-3" />
+                            在新窗口打开
+                        </a>
+                        <iframe src="https://sjtuguoxue.space/stats" className="w-full h-full border-0 opacity-80 group-hover:opacity-100 transition-opacity bg-black" title="Stats" sandbox="allow-scripts allow-same-origin allow-popups"></iframe>
+                        <div className="absolute top-2 left-2 bg-black/60 px-2 py-1 text-xs rounded text-gray-300 pointer-events-none">「将心萦系」</div>
+                    </div>
+                    <div className="flex-1 bg-white/5 rounded-xl border border-white/10 overflow-hidden relative group flex flex-col">
+                         <a href="https://sjtuguoxue.space/poem/03141" target="_blank" rel="noopener noreferrer" className="absolute top-2 right-2 bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1 rounded-full z-20 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
+                            <ExternalLinkIcon className="w-3 h-3" />
+                            在新窗口打开
+                        </a>
+                        <iframe src="https://sjtuguoxue.space/poem/03141" className="w-full h-full border-0 opacity-80 group-hover:opacity-100 transition-opacity bg-black" title="Poem" sandbox="allow-scripts allow-same-origin allow-popups"></iframe>
+                        <div className="absolute top-2 left-2 bg-black/60 px-2 py-1 text-xs rounded text-gray-300 pointer-events-none">「共聚江南」</div>
+                    </div>
+                </div>
+            </div>
+        );
+
+        // P4 Social Practice
+        const SocialPracticeSlide = () => (
+            <div className="w-full h-full relative flex items-center justify-center overflow-hidden">
+                {/* Background Split Images */}
+                <div className="absolute inset-0 flex z-0">
+                    <div className="relative w-full h-full">
+                        {/* Image 1 (Left/Top) */}
+                        <div 
+                            className="absolute inset-0 bg-cover bg-center"
+                            style={{ 
+                                backgroundImage: 'url(https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80)', // Placeholder Nature
+                                clipPath: 'polygon(0 0, 70% 0, 30% 100%, 0 100%)'
+                            }}
+                        />
+                         {/* Image 2 (Right/Bottom) */}
+                        <div 
+                            className="absolute inset-0 bg-cover bg-center"
+                            style={{ 
+                                backgroundImage: 'url(2.jpg)', // Placeholder Landscape
+                                clipPath: 'polygon(70% 0, 100% 0, 100% 100%, 30% 100%)'
+                            }}
+                        />
+                        {/* Overlay Mask */}
+                        <div className="absolute inset-0 bg-black/60 z-10" />
+                    </div>
+                </div>
+
+                {/* Content */}
+                <div className="z-20 w-full max-w-6xl px-4 flex flex-col gap-8 h-full justify-center pt-10">
+                    <h2 className="text-3xl md:text-4xl font-bold text-center text-white drop-shadow-md font-serif">社会实践：行万里路</h2>
+                    <div className="flex flex-col md:flex-row gap-6 h-auto md:h-[60%]">
+                         {/* Text Box 1: 优化：更灵活的布局，支持更多文字 */}
+                        <motion.div 
+                            initial={{ x: -50, opacity: 0 }}
+                            whileInView={{ x: 0, opacity: 1 }}
+                            className="flex-1 bg-black/50 backdrop-blur-md border border-white/20 p-8 rounded-xl flex flex-col overflow-y-auto"
+                        >
+                            <h3 className="text-2xl font-bold text-star-gold mb-2 font-serif border-b border-white/10 pb-2">实践成就</h3>
+                            <h4 className="text-sm text-gray-400 mb-4 font-mono">SOCIAL PRACTICE ACHIEVEMENTS</h4>
+                            <div className="text-gray-200 leading-relaxed space-y-4 font-light text-lg">
+                                <p>本项目依托上海交大国学社，组织“思源·沂蒙情”实践团赴山东临沂开展暑期社会实践。活动聚焦三大核心板块：</p>
+                                <p><strong>文化寻访与帮扶</strong>：依托杭头村思源图书馆，开展学业指导与文化交流，助力乡村文化振兴</p>
+                                <p><strong>红色精神研学</strong>：瞻仰华东野战军纪念馆及红嫂博物馆，深悟“党群同心、水乳交融”的沂蒙精神</p>
+                                <p><strong>产业转型调研</strong>：实地考察当地物流、板材及高新企业，见证临沂“物流之都”的高质量发展</p>    
+                                <p>在“行万里路”中践行“<strong>饮水思源</strong>”校训，将文化传承、爱国教育与国情调研深度融合，把论文写在祖国大地上。</p>
+                            </div>
+                        </motion.div>
+                         {/* Text Box 2 */}
+                        <motion.div 
+                            initial={{ x: 50, opacity: 0 }}
+                            whileInView={{ x: 0, opacity: 1 }}
+                            className="flex-1 bg-black/50 backdrop-blur-md border border-white/20 p-8 rounded-xl flex flex-col overflow-y-auto"
+                        >
+                            <h3 className="text-2xl font-bold text-nebula-purple mb-2 font-serif border-b border-white/10 pb-2">途中诗作 <span style={{color: '#999', fontSize: '0.8em'}}>16</span></h3>
+                            <h4 className="text-sm text-gray-400 mb-4 font-mono">POEMS ON THE ROAD</h4>
+                            <div className="font-serif text-gray-200 italic space-y-6 text-lg">
+                                <div>
+                                    <p className="font-bold text-white not-italic mb-2">车过长江，寄交大国学社暑期社会实践团诸同学 / 周庆贵</p>
+                                    <p>五载潜沉万卷馀，咎由一句爱吾庐。</p>
+                                    <p>诗轻岂必生前累，眉敛何妨死后舒。</p>
+                                    <p>小站车停磨昼晚，危栏泪忆渡江初。</p>
+                                    <p>识人草木无人识，带月何时一荷锄。</p>
+                                </div>
+                                <div>
+                                    <p className="font-bold text-white not-italic mb-2">满江红·赴临沂席上作 / 广寒居士</p>
+                                    <p>齐鲁家山，奇地界、最多豪杰。飞玉盏、蔌肴珍味，妙华风物。蜀相遗风还更说，兰亭隽句何曾绝。忝座中、看陆海潘江，皆星列。</p>
+                                    <p>酣畅处，情绪阔。翻涌起，胸怀热。各高辞相祝，义交初结。向好山河同迈进，在新天地宜风发。应记取、逸韵自盈襟，当时月。</p>
+                                </div>
+                                <div>
+                                    <p className="font-bold text-white not-italic mb-2">满江红·次韵广寒居士 / 周子涵</p>
+                                    <p>临水依山，齐鲁界、辈生英杰。席上酒、三巡既过，更添人物。先圣名声流万古，今民兴业功殊绝。笑谈中、风漫卷残云，醇犹列。</p>
+                                    <p>行路久，天地阔。乡俗异，心同热。幸甚为来客，情缘交结。此去思源应恨晚，明朝致远千帆发。待归期、当举袖寻将，东方月。</p>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                </div>
+            </div>
+        );
+
+        // P5 Research / Games
+        const ResearchSlide = () => {
+             const [quiz1Selected, setQuiz1Selected] = useState(null);
+             
+             // 更新：换为8句律诗
+             const correctOrder = ["王孙若来此", "道狭不妨履", "有客捎云至", "流清差可桴", "邀花续旧游", "雨栖新草细", "无事且淹留", "香绕密林幽"];
+             const [quiz2Order, setQuiz2Order] = useState([...correctOrder]);
+
+             const shuffle = () => {
+                setQuiz2Order([...quiz2Order].sort(() => Math.random() - 0.5));
+             }
+
+             // 简单的交换逻辑模拟拖拽
+             const moveItem = (fromIndex, toIndex) => {
+                 if (toIndex < 0 || toIndex >= quiz2Order.length) return;
+                 const newOrder = [...quiz2Order];
+                 const item = newOrder.splice(fromIndex, 1)[0];
+                 newOrder.splice(toIndex, 0, item);
+                 setQuiz2Order(newOrder);
+             }
+
+             return (
+                <div className="w-full h-full flex flex-col items-center justify-center p-4 z-10">
+                    <h2 className="text-3xl font-bold mb-4 font-serif">科研与趣味：诗词Benchmark</h2>
+                    <p className="mb-8 text-gray-400">将AI评估与趣味互动结合，探索诗词理解新边界</p>
+                    
+                    <div className="flex flex-col md:flex-row gap-6 w-full max-w-5xl">
+                        {/* Card 1: Single Choice */}
+                        <div className="flex-1 bg-white/10 backdrop-blur-md border border-white/10 p-6 rounded-xl flex flex-col">
+                            <h3 className="text-lg font-bold text-blue-300 mb-4 font-serif">01. 选词填空</h3>
+                            <div className="bg-black/30 p-4 rounded mb-4 text-lg font-serif">
+                                _____曳辫过灯衢。
+                            </div>
+                            <div className="grid grid-cols-2 gap-3 mb-4">
+                                {["寻常", "平生", "依然", "经年"].map((opt) => (
+                                    <button 
+                                        key={opt}
+                                        onClick={() => setQuiz1Selected(opt)}
+                                        className={`p-2 rounded border transition-colors ${quiz1Selected === opt ? 'bg-blue-500 border-blue-500 text-white' : 'border-white/20 hover:bg-white/10 text-gray-300'}`}
+                                    >
+                                        {opt}
+                                    </button>
+                                ))}
+                            </div>
+                            
+                            {/* Performance Data 1 */}
+                            <div className="mt-auto bg-black/20 p-3 rounded text-sm font-mono border border-white/5">
+                                <div className="text-gray-400 text-xs mb-1">BENCHMARK RESULT</div>
+                                <div className="flex justify-between items-center mb-1">
+                                    <span className="text-blue-300">AI Average</span>
+                                    <span className="font-bold">58.66%</span>
+                                </div>
+                                <div className="w-full bg-gray-700 h-1.5 rounded-full mb-2">
+                                    <div className="bg-blue-400 h-1.5 rounded-full" style={{width: '58.66%'}}></div>
+                                </div>
+                                <div className="flex justify-between items-center mb-1">
+                                    <span className="text-green-300">Human Level</span>
+                                    <span className="font-bold">48.90%</span>
+                                </div>
+                                <div className="w-full bg-gray-700 h-1.5 rounded-full">
+                                    <div className="bg-green-400 h-1.5 rounded-full" style={{width: '48.90%'}}></div>
+                                </div>
+                            </div>
+
+                            {quiz1Selected && <div className="mt-4 text-xs text-green-400">已记录选择：{quiz1Selected}</div>}
+                        </div>
+
+                        {/* Card 2: Reorder */}
+                        <div className="flex-1 bg-white/10 backdrop-blur-md border border-white/10 p-6 rounded-xl flex flex-col">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-bold text-purple-300 font-serif">02. 律诗排序 (难度UP)</h3>
+                                <div className="flex gap-2">
+                                     <button onClick={shuffle} className="text-xs px-2 py-1 bg-white/10 rounded hover:bg-white/20">随机打乱</button>
+                                </div>
+                            </div>
+                            
+                            {/* 律诗 8句 双列布局 */}
+                            <div className="grid grid-cols-2 gap-2 mb-4">
+                                {quiz2Order.map((line, i) => ( 
+                                    <div key={line} className="bg-black/30 p-2 rounded text-center text-gray-200 cursor-pointer hover:bg-white/5 border border-transparent hover:border-white/20 flex justify-between items-center group font-serif text-sm">
+                                        <button onClick={() => moveItem(i, i-1)} className="text-gray-600 hover:text-white opacity-0 group-hover:opacity-100 px-1">←</button>
+                                        <span>{line}</span>
+                                        <button onClick={() => moveItem(i, i+1)} className="text-gray-600 hover:text-white opacity-0 group-hover:opacity-100 px-1">→</button>
+                                    </div>
+                                ))}
+                            </div>
+                            
+                             {/* Performance Data 2 */}
+                             <div className="mt-auto bg-black/20 p-3 rounded text-sm font-mono border border-white/5">
+                                <div className="text-gray-400 text-xs mb-1">BENCHMARK RESULT</div>
+                                <div className="flex justify-between items-center mb-1">
+                                    <span className="text-red-400 font-bold">AI Average</span>
+                                    <span className="font-bold text-red-500 text-lg">0.67% ⚠️</span>
+                                </div>
+                                <div className="w-full bg-gray-700 h-1.5 rounded-full mb-2">
+                                    <div className="bg-red-500 h-1.5 rounded-full" style={{width: '1%'}}></div>
+                                </div>
+                                <div className="flex justify-between items-center mb-1">
+                                    <span className="text-green-300">Human Level</span>
+                                    <span className="font-bold">35.20%</span>
+                                </div>
+                                <div className="w-full bg-gray-700 h-1.5 rounded-full">
+                                    <div className="bg-green-400 h-1.5 rounded-full" style={{width: '35.2%'}}></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+             );
+        };
+
+        // P6 Vision
+        const VisionSlide = () => (
+            <div className="w-full max-w-4xl px-4 z-10 text-center">
+                 <h2 className="text-4xl font-bold mb-12 text-star-gold font-serif">愿景 2026</h2>
+                 <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-12 rounded-2xl relative overflow-hidden group hover:bg-white/10 transition-colors">
+                    <div className="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-blue-500 to-purple-500"></div>
+                    <p className="text-2xl md:text-3xl font-serif leading-relaxed text-gray-200">
+                        "让诗词成为连接你与我、过去与未来的星桥。"
+                    </p>
+                    <div className="mt-8 text-lg text-gray-400 font-light">
+                        我们将继续探索 AI 与古典文学的深度融合，<br/>
+                        打造更具沉浸感的"诗词宇宙"，<br/>
+                        让每一位热爱者都能在浩瀚星河中找到属于自己的那一颗诗星。
+                    </div>
+                 </div>
+            </div>
+        );
+
+
+        // ==========================================
+        // 5. Main App Logic
+        // ==========================================
+
+        const App = () => {
+            const [currentSlide, setCurrentSlide] = useState(0);
+            const totalSlides = 8; // 0-7
+
+            const nextSlide = () => setCurrentSlide(p => (p + 1) % totalSlides);
+            const prevSlide = () => setCurrentSlide(p => (p - 1 + totalSlides) % totalSlides);
+
+            // Keyboard Nav
+            useEffect(() => {
+                const handleKey = (e) => {
+                    if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
+                    if (e.key === 'ArrowLeft') prevSlide();
+                };
+                window.addEventListener('keydown', handleKey);
+                return () => window.removeEventListener('keydown', handleKey);
+            }, []);
+
+            return (
+                <div className="relative w-screen h-screen overflow-hidden text-white selection:bg-purple-500 selection:text-white">
+                    <StarBackground />
+                    
+                    {/* Slides Container */}
+                    <AnimatePresence mode="wait">
+                        <Slide key={currentSlide} className="absolute inset-0">
+                            {currentSlide === 0 && <TitleSlide />}
+                            {currentSlide === 1 && <StatsSlide />}
+                            {currentSlide === 2 && <PoemAchievementSlide />}
+                            {currentSlide === 3 && <IframeSlide />}
+                            {currentSlide === 4 && <SocialPracticeSlide />}
+                            {currentSlide === 5 && <ResearchSlide />}
+                            {currentSlide === 6 && (
+                                <div className="w-full h-full pt-20 px-4 max-w-7xl flex flex-col items-center">
+                                    <h2 className="text-2xl font-bold mb-4 font-serif">AI作诗 Demo</h2>
+                                    <div className="flex-1 w-full border border-gray-700 rounded-xl overflow-hidden bg-black/50 backdrop-blur shadow-2xl">
+                                        <AIDemo isActive={true} />
+                                    </div>
+                                </div>
+                            )}
+                            {currentSlide === 7 && <VisionSlide />}
+                        </Slide>
+                    </AnimatePresence>
+
+                    {/* Navigation UI */}
+                    <div className="fixed bottom-8 left-0 w-full flex justify-center items-center gap-4 z-50">
+                        <button onClick={prevSlide} className="p-2 rounded-full hover:bg-white/10 transition-colors text-white/50 hover:text-white">
+                            <ChevronRight className="rotate-180" />
+                        </button>
+                        <div className="flex gap-2">
+                            {Array.from({length: totalSlides}).map((_, i) => (
+                                <div 
+                                    key={i} 
+                                    onClick={() => setCurrentSlide(i)}
+                                    className={`w-2 h-2 rounded-full cursor-pointer transition-all ${i === currentSlide ? 'bg-star-gold w-4' : 'bg-white/30 hover:bg-white/50'}`}
+                                />
+                            ))}
+                        </div>
+                        <button onClick={nextSlide} className="p-2 rounded-full hover:bg-white/10 transition-colors text-white/50 hover:text-white">
+                            <ChevronRight />
+                        </button>
+                    </div>
+
+                    {/* Logo/Watermark */}
+                    <div className="fixed top-4 right-5 z-40 w-24 h-12 md:w-40">
+                        <img src="logo.png" alt="Logo" className="w-full h-full object-contain"/>
+                    </div>
+                    <div className="fixed top-6 left-6 z-50 text-xs font-mono text-white/30 tracking-widest pointer-events-none">
+                        SJTU GUOXUE 2025
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
